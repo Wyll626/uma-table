@@ -1,24 +1,44 @@
-import Image from "next/image";
-import { Suspense } from "react";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
 
-export const revalidate = 0;
+const inter = Inter({ subsets: ['latin'] })
 
-import { Feed, FeedSkeleton } from "./components/feed";
+export const metadata: Metadata = {
+  title: 'UMA Table App',
+  description: 'A Next.js 14 application',
+}
+
+import RacingTables from '../components/DataTable';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
-      <div className="flex place-items-center ">
-        <Image src="/ampt.svg" alt="Ampt Logo" width={180} height={37} />
-        <p className="m-3 text-xl">+</p>
-        <Image src="/nextjs.svg" alt="Next.js Logo" width={180} height={37} />
-      </div>
-      <div className="m-4">
-        <h1 className="text-lg text-center">Streaming with Suspense</h1>
-        <Suspense fallback={<FeedSkeleton />}>
-          <Feed />
-        </Suspense>
+    <main 
+      className="min-h-screen p-8"
+      style={{
+        backgroundImage: 'url(/bg.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Uma Musume Racing Championship
+            </h1>
+            <p className="text-xl text-gray-600">
+              Racing point system with live results and standings
+            </p>
+          </div>
+        </div>
+        
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6">
+          <RacingTables />
+        </div>
       </div>
     </main>
-  );
-}
+  )
+} 

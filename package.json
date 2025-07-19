@@ -1,35 +1,36 @@
 {
-  "name": "@ampt-templates/nextjs",
-  "private": true,
-  "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "ampt:build": "ampt-next build",
-    "ampt:dev": "next dev",
-    "start": "next start",
-    "lint": "next lint"
-  },
   "dependencies": {
-    "@ampt/data": "^1",
-    "@ampt/nextjs": "^2",
-    "@ampt/sdk": "^1",
-    "next": "13.5.4",
-    "react": "^18",
-    "react-dom": "^18"
+    "@ampt/nextjs": "^3.0.20",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "next": "^14.2.30",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10",
-    "eslint": "^8",
-    "eslint-config-next": "13.5.4",
-    "postcss": "^8",
-    "tailwindcss": "^3",
-    "typescript": "^5"
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "autoprefixer": "^10.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.0"
   },
   "ampt": {
-    "app": "nextjs",
-    "runtime": "nodejs18"
-  }
+    "org": "willbaseleres853518",
+    "app": "uma-table"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "ampt:dev": "next dev",
+    "ampt:build": "ampt-next build"
+  },
+  "main": "entrypoint.mjs"
 }
