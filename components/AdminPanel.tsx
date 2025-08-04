@@ -28,31 +28,67 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip
+  Chip,
+  Card,
+  CardContent,
+  Grid,
+  Divider
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
-  Download as DownloadIcon
+  Download as DownloadIcon,
+  Casino as CasinoIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { Trainer, Session, Race, RaceResult } from '@/types';
+import RandomRaceSelector from './RandomRaceSelector';
 
 interface AdminPanelProps {
   onDataChange: () => void;
+}
+
+interface RaceData {
+  id: number;
+  url_name: string;
+  name_jp: string;
+  name_en: string;
+  name_ko: string;
+  name_tw: string;
+  list_ura: string[];
+  grade: number;
+  group: number;
+  track: number;
+  distance: number;
+  terrain: number;
+  direction: number;
+  course: number;
+  entries: number;
+  race_id: number;
+  course_id: number;
+  banner_id: number;
+  time: number;
+  season: number;
+  factor: {
+    effect_1: string;
+    effect_2: string;
+  };
 }
 
 export default function AdminPanel({ onDataChange }: AdminPanelProps) {
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [races, setRaces] = useState<Race[]>([]);
+  const [raceData, setRaceData] = useState<RaceData[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Dialog states
   const [trainerDialog, setTrainerDialog] = useState(false);
   const [sessionDialog, setSessionDialog] = useState(false);
   const [raceDialog, setRaceDialog] = useState(false);
+  const [randomRaceDialog, setRandomRaceDialog] = useState(false);
   const [editingTrainer, setEditingTrainer] = useState<Trainer | null>(null);
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const [editingRace, setEditingRace] = useState<Race | null>(null);
@@ -65,7 +101,6 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
     raceNumber: 1, 
     results: [] as RaceResult[] 
   });
-
   // Form error states
   const [trainerErrors, setTrainerErrors] = useState<{ name?: string }>({});
   const [sessionErrors, setSessionErrors] = useState<{ name?: string; startDate?: string; totalRaces?: string }>({});
@@ -80,17 +115,20 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
 
   const fetchData = async () => {
     try {
-      const [trainersRes, racesRes] = await Promise.all([
+      const [trainersRes, racesRes, raceDataRes] = await Promise.all([
         fetch('/api/trainers'),
-        fetch('/api/races')
+        fetch('/api/races'),
+        fetch('/races-db.json')
       ]);
       
       const trainersData = await trainersRes.json();
       const racesData = await racesRes.json();
+      const raceDataJson = await raceDataRes.json();
       
       setTrainers(trainersData.trainers);
       setSessions(racesData.sessions);
       setRaces(racesData.sessions.flatMap((s: Session) => s.races));
+      setRaceData(raceDataJson.raceData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -118,6 +156,8 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
       default: return 0;
     }
   };
+
+
 
   // Trainer CRUD
   const handleTrainerSubmit = async () => {
@@ -481,6 +521,24 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
         </Box>
       </Box>
 
+      {/* Random Race Selector Section */}
+      <Paper sx={{ p: 2, mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" color="black">Random Race Selector</Typography>
+          <Button
+            variant="contained"
+            startIcon={<CasinoIcon />}
+            onClick={() => setRandomRaceDialog(true)}
+            sx={{ backgroundColor: 'secondary.main' }}
+          >
+            Select Random Races
+          </Button>
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          Automatically select random races from the database and assign them to sessions
+        </Typography>
+      </Paper>
+
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
         {/* Trainers Section */}
         <Box sx={{ flex: { xs: 1, md: 1/3 } }}>
@@ -757,12 +815,13 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          <FormControl fullWidth margin="dense" required error={!!raceErrors.general}>
+          <FormControl fullWidth margin="dense" required error={!!raceErrors.general} sx={{ minWidth: '110%' }}>
             <InputLabel>Session</InputLabel>
             <Select
               value={raceForm.sessionId}
               onChange={(e) => setRaceForm({ ...raceForm, sessionId: e.target.value })}
               label="Session"
+              size="small"
             >
               {sessions.map((session) => (
                 <MenuItem key={session.id} value={session.id}>
@@ -777,6 +836,7 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
             fullWidth
             margin="dense"
             required
+            size="small"
             value={raceForm.raceNumber}
             onChange={(e) => setRaceForm({ ...raceForm, raceNumber: parseInt(e.target.value) || 0 })}
             inputProps={{ min: 1 }}
@@ -806,6 +866,7 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
                 }}
                 inputProps={{ min: 1, max: trainers.length }}
                 error={!!raceErrors.general}
+                margin="dense"
               />
               <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1, minWidth: 60 }}>
                 ({raceForm.results.find(r => r.trainerId === trainer.id)?.position ? 
@@ -830,6 +891,16 @@ export default function AdminPanel({ onDataChange }: AdminPanelProps) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Random Race Selector Component */}
+      <RandomRaceSelector
+        open={randomRaceDialog}
+        onClose={() => setRandomRaceDialog(false)}
+        sessions={sessions}
+        trainers={trainers}
+        raceData={raceData}
+        onDataChange={onDataChange}
+      />
 
       {/* Notification */}
       <Snackbar

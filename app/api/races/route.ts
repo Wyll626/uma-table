@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, raceNumber, results } = body;
+    const { sessionId, raceNumber, results, raceData } = body;
 
     if (!sessionId || !raceNumber || !results || !Array.isArray(results)) {
       return NextResponse.json({ 
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
         trainerId: result.trainerId,
         position: result.position || index + 1,
         points: result.points || 0
-      }))
+      })),
+      raceData: raceData || undefined
     });
 
     return NextResponse.json(newRace, { status: 201 });

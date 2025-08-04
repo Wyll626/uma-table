@@ -11,12 +11,21 @@ export interface RaceResult {
   points: number;
 }
 
+export interface RaceData {
+  name: string;
+  distance: number;
+  track: number;
+  terrain: number;
+  grade: number;
+}
+
 export interface Race {
   id: string;
   sessionId: string;
   raceNumber: number;
   date: string;
   results: RaceResult[];
+  raceData?: RaceData;
 }
 
 export interface Session {
@@ -52,4 +61,5 @@ export interface AddRaceRequest {
   sessionId: string;
   raceNumber: number;
   results: RaceResult[];
+  raceData?: RaceData;
 } 
