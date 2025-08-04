@@ -1,0 +1,12 @@
+{
+  "sessions": [
+    {
+      "id": "session-1",
+      "name": "Session 1",
+      "startDate": "2025-07-19",
+      "endDate": "2025-07-20",
+      "totalRaces": 5,
+      "races": []
+    }
+  ]
+}

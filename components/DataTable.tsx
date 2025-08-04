@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -18,6 +18,13 @@ import {
   Flag as FlagIcon,
   Speed as SpeedIcon 
 } from '@mui/icons-material';
+import { Trainer, Session } from '@/types';
+import { 
+  calculateTrainerStats, 
+  getCurrentSession, 
+  createRaceMatrix, 
+  getLastSessionResults 
+} from '@/utils/calculations';
 
 interface LastResult {
   position: number;
@@ -37,107 +44,9 @@ interface ChampionshipStanding {
   races: number;
 }
 
-const lastResult: LastResult[] = [
-  {
-    position: 1,
-    trainer: 'Aiko',
-    points: 85,
-    wins: 2,
-    podiums: 4,
-    races: 5,
-  },
-  {
-    position: 2,
-    trainer: 'Imca',
-    points: 72,
-    wins: 1,
-    podiums: 3,
-    races: 5,
-  },
-  {
-    position: 3,
-    trainer: 'Aibon',
-    points: 68,
-    wins: 1,
-    podiums: 3,
-    races: 5,
-  },
-  {
-    position: 4,
-    trainer: 'Rosie',
-    points: 55,
-    wins: 1,
-    podiums: 2,
-    races: 5,
-  },
-  {
-    position: 5,
-    trainer: 'Lac',
-    points: 42,
-    wins: 0,
-    podiums: 2,
-    races: 5,
-  },
-  {
-    position: 6,
-    trainer: 'Chita',
-    points: 28,
-    wins: 0,
-    podiums: 1,
-    races: 5,
-  },
-];
-
-const championshipStandings: ChampionshipStanding[] = [
-  {
-    position: 1,
-    trainer: 'Aiko',
-    points: 314,
-    wins: 8,
-    podiums: 12,
-    races: 14,
-  },
-  {
-    position: 2,
-    trainer: 'Imca',
-    points: 220,
-    wins: 2,
-    podiums: 8,
-    races: 14,
-  },
-  {
-    position: 3,
-    trainer: 'Aibon',
-    points: 199,
-    wins: 1,
-    podiums: 7,
-    races: 14,
-  },
-  {
-    position: 4,
-    trainer: 'Rosie',
-    points: 189,
-    wins: 1,
-    podiums: 6,
-    races: 14,
-  },
-  {
-    position: 5,
-    trainer: 'Lac',
-    points: 175,
-    wins: 1,
-    podiums: 5,
-    races: 14,
-  },
-  {
-    position: 6,
-    trainer: 'Chita',
-    points: 143,
-    wins: 0,
-    podiums: 3,
-    races: 14,
-  },
-];
+interface DataTableProps {
+  refreshTrigger?: number; // Add this prop to trigger refresh
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -167,25 +76,86 @@ const getPositionColor = (position: number) => {
   }
 };
 
-export default function RacingTables() {
-  // Race matrix data - points for each trainer in each race
-  const raceMatrix = [
-    { race: 1, Aiko: 25, Imca: 18, Aibon: 15, Rosie: 12, Lac: 10, Chita: 8 },
-    { race: 2, Aiko: 18, Imca: 25, Aibon: 12, Rosie: 15, Lac: 8, Chita: 10 },
-    { race: 3, Aiko: 25, Imca: 15, Aibon: 18, Rosie: 10, Lac: 12, Chita: 8 },
-    { race: 4, Aiko: 12, Imca: 10, Aibon: 25, Rosie: 18, Lac: 15, Chita: 8 },
-    { race: 5, Aiko: 15, Imca: 12, Aibon: 8, Rosie: 25, Lac: 18, Chita: 10 },
-  ];
+export default function DataTable({ refreshTrigger = 0 }: DataTableProps) {
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Calculate totals for each trainer
-  const totals = {
-    Aiko: raceMatrix.reduce((sum, race) => sum + race.Aiko, 0),
-    Imca: raceMatrix.reduce((sum, race) => sum + race.Imca, 0),
-    Aibon: raceMatrix.reduce((sum, race) => sum + race.Aibon, 0),
-    Rosie: raceMatrix.reduce((sum, race) => sum + race.Rosie, 0),
-    Lac: raceMatrix.reduce((sum, race) => sum + race.Lac, 0),
-    Chita: raceMatrix.reduce((sum, race) => sum + race.Chita, 0),
+  const fetchData = async () => {
+    try {
+      const [trainersResponse, racesResponse] = await Promise.all([
+        fetch('/api/trainers'),
+        fetch('/api/races')
+      ]);
+
+      const trainersData = await trainersResponse.json();
+      const racesData = await racesResponse.json();
+
+      setTrainers(trainersData.trainers);
+      setSessions(racesData.sessions);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, [refreshTrigger]); // Refresh when refreshTrigger changes
+
+  if (loading) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Typography variant="h6" color="black">
+          Loading racing data...
+        </Typography>
+      </Box>
+    );
+  }
+
+  const currentSession = getCurrentSession(sessions);
+  const championshipStats = calculateTrainerStats(trainers, sessions);
+  const lastSessionStats = getLastSessionResults(sessions, trainers);
+  const raceMatrix = currentSession ? createRaceMatrix(currentSession, trainers) : [];
+
+  // Convert stats to the expected format for the existing UI
+  const lastResult: LastResult[] = lastSessionStats.map((stat) => ({
+    position: stat.position,
+    trainer: stat.trainerName,
+    points: stat.totalPoints,
+    wins: stat.wins,
+    podiums: stat.podiums,
+    races: stat.races,
+  }));
+
+  const championshipStandings: ChampionshipStanding[] = championshipStats.map((stat) => ({
+    position: stat.position,
+    trainer: stat.trainerName,
+    points: stat.totalPoints,
+    wins: stat.wins,
+    podiums: stat.podiums,
+    races: stat.races,
+  }));
+
+  // Convert race matrix to the expected format
+  const matrixData = raceMatrix.map(row => {
+    const raceRow: any = { race: row.raceNumber };
+    trainers.forEach(trainer => {
+      const value = row.results[trainer.id];
+      raceRow[trainer.name] = value === "-" ? "-" : (value || 0);
+    });
+    return raceRow;
+  });
+
+  // Calculate totals for each trainer (only for completed races)
+  const totals: { [key: string]: number } = {};
+  trainers.forEach(trainer => {
+    totals[trainer.name] = raceMatrix.reduce((sum, row) => {
+      const value = row.results[trainer.id];
+      return sum + (typeof value === 'number' ? value : 0);
+    }, 0);
+  });
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -194,7 +164,7 @@ export default function RacingTables() {
         <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderBottom: 1, borderColor: 'divider' }}>
           <Typography variant="h5" component="h2" sx={{ display: 'flex', alignItems: 'center' }}>
             <SpeedIcon sx={{ mr: 1, color: 'blue' }} />
-            Current Standings (Last 5 Races)
+            Current Season - Race Record
           </Typography>
         </Box>
         <TableContainer>
@@ -202,16 +172,15 @@ export default function RacingTables() {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa' }}>Race</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>Aiko</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>Imca</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>Aibon</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>Rosie</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>Lac</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>Chita</TableCell>
+                {trainers.map((trainer) => (
+                  <TableCell key={trainer.id} sx={{ fontWeight: 'bold', backgroundColor: '#f8f9fa', textAlign: 'center' }}>
+                    {trainer.name}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
-              {raceMatrix.map((row) => (
+              {matrixData.map((row) => (
                 <TableRow key={row.race} hover>
                   <TableCell 
                     component="th" 
@@ -225,24 +194,19 @@ export default function RacingTables() {
                   >
                     Race {row.race}
                   </TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: row.Aiko === 25 ? 'gold' : 'inherit' }}>
-                    {row.Aiko}
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: row.Imca === 25 ? 'gold' : 'inherit' }}>
-                    {row.Imca}
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: row.Aibon === 25 ? 'gold' : 'inherit' }}>
-                    {row.Aibon}
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: row.Rosie === 25 ? 'gold' : 'inherit' }}>
-                    {row.Rosie}
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: row.Lac === 25 ? 'gold' : 'inherit' }}>
-                    {row.Lac}
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: row.Chita === 25 ? 'gold' : 'inherit' }}>
-                    {row.Chita}
-                  </TableCell>
+                  {trainers.map((trainer) => (
+                    <TableCell 
+                      key={trainer.id}
+                      sx={{ 
+                        textAlign: 'center', 
+                        fontWeight: 'bold', 
+                        color: row[trainer.name] === 25 ? 'gold' : 
+                               row[trainer.name] === "-" ? 'gray' : 'inherit' 
+                      }}
+                    >
+                      {row[trainer.name]}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
               <TableRow sx={{ backgroundColor: '#e3f2fd' }}>
@@ -258,24 +222,11 @@ export default function RacingTables() {
                 >
                   Total
                 </TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
-                  {totals.Aiko}
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
-                  {totals.Imca}
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
-                  {totals.Aibon}
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
-                  {totals.Rosie}
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
-                  {totals.Lac}
-                </TableCell>
-                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
-                  {totals.Chita}
-                </TableCell>
+                {trainers.map((trainer) => (
+                  <TableCell key={trainer.id} sx={{ textAlign: 'center', fontWeight: 'bold', color: 'green' }}>
+                    {totals[trainer.name]}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableBody>
           </Table>
@@ -289,7 +240,7 @@ export default function RacingTables() {
             <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderBottom: 1, borderColor: 'divider' }}>
               <Typography variant="h5" component="h2" sx={{ display: 'flex', alignItems: 'center' }}>
                 <FlagIcon sx={{ mr: 1, color: 'red' }} />
-                Last Session Results (5 Races)
+                Current Season - Standings
               </Typography>
             </Box>
             <TableContainer>
@@ -350,7 +301,7 @@ export default function RacingTables() {
             <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderBottom: 1, borderColor: 'divider' }}>
               <Typography variant="h5" component="h2" sx={{ display: 'flex', alignItems: 'center' }}>
                 <TrophyIcon sx={{ mr: 1, color: '#FFD700' }} />
-                Championship Standings
+                All Time - Standings
               </Typography>
             </Box>
             <TableContainer>

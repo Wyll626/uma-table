@@ -7,13 +7,13 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Uma Musume Racing Championship',
-  description: '🏇 Live racing point system with trainer standings, race results, and championship rankings. Experience the excitement of Uma Musume racing!',
+  description: 'Live racing point system with trainer standings, race results, and championship rankings. Experience the excitement of Uma Musume racing!',
   openGraph: {
     title: 'Uma Musume Racing Championship',
-    description: '🏇 Live racing point system with trainer standings, race results, and championship rankings. Experience the excitement of Uma Musume racing!',
+    description: 'Live racing point system with trainer standings, race results, and championship rankings. Experience the excitement of Uma Musume racing!',
     images: [
       {
-        url: 'https://uma.team-one.app/uma-background.jpg',
+        url: 'https://uma.team-one.app/bg.jpg',
         width: 900,
         height: 600,
         alt: 'Uma Musume Racing Championship - Colorful horse girls in dynamic racing poses with confetti',
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Uma Musume Racing Championship',
-    description: '🏇 Live racing point system with trainer standings, race results, and championship rankings.',
-    images: ['https://uma.team-one.app/uma-background.jpg'],
+    description: 'Live racing point system with trainer standings, race results, and championship rankings.',
+    images: ['https://uma.team-one.app/bg.jpg'],
   },
   keywords: ['Uma Musume', 'Racing', 'Championship', 'Horse Girls', 'Anime', 'Gaming', 'Leaderboard'],
   authors: [{ name: 'Uma Musume Racing Team' }],

@@ -29,9 +29,6 @@ export default function Home() {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Uma Musume Racing Championship
             </h1>
-            <p className="text-xl text-gray-600">
-              Racing point system with live results and standings
-            </p>
           </div>
         </div>
         

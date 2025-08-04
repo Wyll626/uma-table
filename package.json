@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@ampt/data": "^1.0.27",
     "@ampt/nextjs": "^3.0.20",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",

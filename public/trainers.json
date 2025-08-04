@@ -1,0 +1,46 @@
+{
+  "trainers": [
+    {
+      "id": "aiko",
+      "name": "Aiko",
+      "active": true,
+      "joinedDate": "2024-01-01"
+    },
+    {
+      "id": "imca",
+      "name": "Imca",
+      "active": true,
+      "joinedDate": "2024-01-01"
+    },
+    {
+      "id": "aibon",
+      "name": "Aibon",
+      "active": true,
+      "joinedDate": "2024-01-01"
+    },
+    {
+      "id": "rosie",
+      "name": "Rosie",
+      "active": true,
+      "joinedDate": "2024-01-01"
+    },
+    {
+      "id": "lac",
+      "name": "Lac",
+      "active": true,
+      "joinedDate": "2024-01-01"
+    },
+    {
+      "id": "chita",
+      "name": "Chita",
+      "active": true,
+      "joinedDate": "2024-01-01"
+    },
+    {
+      "id": "otong",
+      "name": "Otong",
+      "active": true,
+      "joinedDate": "2025-07-19"
+    }
+  ]
+}
